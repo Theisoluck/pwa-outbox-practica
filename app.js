@@ -2,6 +2,14 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
         .then(() => console.log('Service Worker registrado'))
         .catch((error) => console.log('Error al registrar el Service Worker:', error));
+
+    // Mensajes que envía sw.js cuando termina de sincronizar en segundo plano
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.tipo === 'OUTBOX_SINCRONIZADO') {
+            console.log('[UI] Confirmación recibida del Service Worker. Actualizando bandeja...');
+            renderizarColaOutbox();
+        }
+    });
 }
 
 // API de la tienda (Ejercicio 3)
@@ -88,21 +96,32 @@ function procesarEnvioProducto(datosFormulario) {
             });
         })
         .catch(() => {
-            console.warn('[Outbox] Sin conexión. Encolando producto localmente...');
+            console.warn('[Outbox] Sin conexión. Encolando producto en IndexedDB...');
             // Falla de red: se guarda como pendiente para reenviarlo después
             return guardarRegistro({
                 ...datosFormulario,
                 estado: 'pendiente',
                 fechaCreacion: Date.now()
-            });
+            })
+                .then(() => {
+                    // Si el navegador soporta Background Sync, el reenvío lo hace sw.js
+                    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+                        return navigator.serviceWorker.ready
+                            .then((registro) => {
+                                console.log('[Outbox] Registrando etiqueta sync-reportes en el SW...');
+                                return registro.sync.register('sync-reportes');
+                            });
+                    }
+                });
         })
         .then(() => {
             return renderizarColaOutbox();
         });
 }
 
-// UPDATE: reenvía los pendientes cuando regresa la conexión
-function sincronizarPendientes() {
+// UPDATE (respaldo): reenvía los pendientes desde la página
+// Solo se usa en navegadores sin SyncManager (Safari/iOS, Firefox)
+function sincronizarPendientesFallback() {
     console.log('[Outbox] Conexión detectada. Buscando registros pendientes...');
 
     return obtenerTodosLosRegistros()
@@ -144,7 +163,13 @@ function sincronizarPendientes() {
 
 window.addEventListener('online', () => {
     actualizarIndicadorRed();
-    sincronizarPendientes();
+
+    // Solo sincronizar desde la página si el navegador NO soporta Background Sync
+    // Así app.js y sw.js no envían el mismo POST dos veces
+    if (!('SyncManager' in window)) {
+        console.log('[Outbox] Navegador sin SyncManager. Ejecutando fallback por evento online...');
+        sincronizarPendientesFallback();
+    }
 });
 
 window.addEventListener('offline', actualizarIndicadorRed);

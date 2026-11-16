@@ -1,4 +1,9 @@
-const CACHE_STATIC_NAME = 'static-outbox-v1';
+// Importar el mini-wrapper de IndexedDB en el Service Worker
+importScripts('./db-helper.js');
+
+const API_URL = 'https://fakestoreapi.com/products';
+
+const CACHE_STATIC_NAME = 'static-outbox-v2';
 const STATIC_FILES = [
     './',
     './index.html',
@@ -46,4 +51,69 @@ self.addEventListener('fetch', (event) => {
                 return respuestaCache || fetch(event.request);
             })
     );
+});
+
+// Avisa a todas las pestañas abiertas que terminó la sincronización
+function notificarClientesActualizacion() {
+    return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then((clientes) => {
+            clientes.forEach((cliente) => {
+                cliente.postMessage({
+                    tipo: 'OUTBOX_SINCRONIZADO',
+                    timestamp: Date.now()
+                });
+            });
+        });
+}
+
+// Reenvía los productos pendientes desde el Service Worker
+function sincronizarPendientesSW() {
+    console.log('[SW-Sync] Ejecutando barrido de transacciones pendientes...');
+
+    return obtenerTodosLosRegistros()
+        .then((registros) => {
+            const pendientes = registros.filter((item) => item.estado === 'pendiente');
+
+            if (pendientes.length === 0) {
+                console.log('[SW-Sync] Cola limpia. Nada por sincronizar.');
+                return;
+            }
+
+            const promesasDeEnvio = pendientes.map((item) => {
+                return fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: item.titulo,
+                        price: item.precio,
+                        description: item.descripcion
+                    })
+                })
+                    .then((respuesta) => {
+                        if (!respuesta.ok) {
+                            throw new Error('Error HTTP ' + respuesta.status + ' al sincronizar ID ' + item.id);
+                        }
+                        return actualizarEstadoRegistro(item.id, 'sincronizado');
+                    });
+            });
+
+            return Promise.all(promesasDeEnvio)
+                .then(() => notificarClientesActualizacion());
+        });
+}
+
+// El navegador dispara 'sync' cuando detecta conexión estable
+self.addEventListener('sync', (event) => {
+    console.log('[SW-Sync] Evento sync disparado con etiqueta:', event.tag);
+
+    if (event.tag === 'sync-reportes') {
+        event.waitUntil(
+            sincronizarPendientesSW()
+                .catch((error) => {
+                    console.error('[SW-Sync] Falla en sincronización; el navegador reintentará luego:', error);
+                    // Relanzar el error hace que el navegador programe un reintento
+                    throw error;
+                })
+        );
+    }
 });
