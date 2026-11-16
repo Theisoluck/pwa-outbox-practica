@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#212529">
+    <title>Tienda de Axel - Outbox</title>
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="manifest" href="./manifest.json">
+</head>
+<body>
+    <header>
+        <h1>Tienda de Axel</h1>
+        <span id="badge-red" class="badge online">En Línea</span>
+    </header>
+
+    <main>
+        <section class="card">
+            <h2>Nuevo Producto</h2>
+            <form id="form-producto">
+                <label for="titulo">Nombre del producto</label>
+                <input type="text" id="titulo" placeholder="Ej. Mochila escolar" required>
+
+                <label for="precio">Precio</label>
+                <input type="number" id="precio" placeholder="Ej. 450" min="0" step="0.01" required>
+
+                <label for="descripcion">Descripción</label>
+                <textarea id="descripcion" placeholder="Detalle del producto..." required></textarea>
+
+                <button type="submit">Enviar Producto</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="header-lista">
+                <h2>Bandeja de Salida (IndexedDB)</h2>
+                <button id="btn-purgar" type="button">Purgar Sincronizados</button>
+            </div>
+            <ul id="lista-outbox"></ul>
+        </section>
+    </main>
+
+    <script src="./db-helper.js"></script>
+    <script src="./app.js"></script>
+</body>
+</html>

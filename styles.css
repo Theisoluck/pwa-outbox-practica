@@ -1,0 +1,141 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background-color: #212529;
+    color: #ffffff;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+.card {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+label {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+button {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    background-color: #212529;
+    color: #ffffff;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.header-lista {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.header-lista h2 {
+    margin: 0;
+}
+
+#lista-outbox {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#lista-outbox li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.badge.online {
+    background-color: #198754;
+    color: #ffffff;
+}
+
+.badge.offline {
+    background-color: #dc3545;
+    color: #ffffff;
+}
+
+.estado-pendiente {
+    color: #b45309;
+    font-weight: bold;
+}
+
+.estado-sincronizado {
+    color: #198754;
+    font-weight: bold;
+}
+
+.hora {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
